@@ -29,13 +29,15 @@
 
 ## Result
 
-Measured the same evening, on the same metrics. One source is excluded because it was refusing part of our requests that evening for an unrelated reason.
+Measured the same evening, on the same metrics, for every source but one. That one refreshes by keyword search every 15 minutes and was refusing part of our searches that evening. It was not the slow source. For the searches it still answered, its listings in their final 5 minutes went from 6.8 days old to a median of 3 minutes.
 
 | | Before | After |
 |---|---|---|
-| Listings in their final 5 minutes, price age | about 3 days, 0% on schedule | under 1 minute |
+| Listings in their final 5 minutes, price age | about 3 days, 0% on schedule | under 1 minute (see below) |
 | Source A, closing within the hour, median age | 68 min | 1.4–5.9 min |
 | Source B, closing within the hour, median age | 47 min, 0% on schedule | 0.8 min, 100% on schedule |
 | Source C, closing within the hour, median age | 209 min, 0% on schedule | 0.2 min, 100% on schedule |
 
 No source was asked for more than its budget.
+
+"Under 1 minute" is the age of that band at the evening check. I did not record its distribution, so there is no p95 or maximum to quote. The closest thing is one wave of 81 listings at one source: 0.3 minutes old at 1–2 minutes before close and 0.5 at 2–5 minutes, against 15.2 and 14.2 before. Next time I would record p50, p95 and the maximum.

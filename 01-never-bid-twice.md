@@ -1,4 +1,4 @@
-# 01 · A bid must never go above the limit or out twice
+# 01 · Bids reach the API at most once, and never above the limit
 
 **When:** September 2026 · **Where:** the bidding path (Python services behind a Node.js proxy)
 
@@ -28,3 +28,11 @@ The unknown rows are how systems bid twice: the first request may have landed, a
 - **Dependent bids.** One bid can depend on the outcome of another. Right before each send, a gate re-checks that the dependency still allows the bid. If the check itself fails, nothing is sent.
 - **Who is winning.** "Am I the high bidder?" is answered from fresh data from the marketplace, never from a local flag that might be stale.
 - **Late extensions.** Many auctions extend when a late bid arrives. The bidder follows the extension and bids again when outbid, up to the limit.
+
+## The other hop, and what is not covered
+
+The tests above cover the hop from the console to the API. The API's own call to the marketplace is a separate hop:
+
+- It is a single POST that is never retried.
+- If it times out, the attempt is logged and nothing is resent. The next decision comes from a fresh read of the lot, so a bid that did land shows up there (we are the high bidder) instead of going out again.
+- Two gaps remain. The log records such an attempt as failed, not unconfirmed. And this hop has no replay test of its own yet.

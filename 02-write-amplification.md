@@ -34,28 +34,37 @@ Each re-stamp still produced a new row version, WAL, index work and lock traffic
 
 The 9-minute window was the best case; the 19-hour average is the number to quote. That average covers a larger table, sources that re-stamp thousands of listings in bursts, and the refresh lanes from note 04, which went live the same night and re-price more listings every hour. The "before" figure is a short sample, so −60% is approximate.
 
-## Why a price change costs so much WAL (17 Oct)
+## Where the WAL goes now (17 Oct)
 
-The average hid two very different writes. `pg_stat_statements` per statement, read-only, one row per call:
+I looked at one 15½-minute window (17 Oct, 02:28–02:44 UTC, 499 MB of WAL) in two ways, both read-only. `pg_stat_statements`, diffed across the window, gives WAL per statement. `pg_waldump`, over exactly the same stretch of WAL, gives WAL by kind.
 
-| Statement | WAL records per row | WAL per row | Full-page images among its records |
+| Statement | Rows | WAL per row | Share of the window's WAL |
 |---|---|---|---|
-| Countdown and "last checked" only | ~46 | ~24 KB | 9% |
-| Price change | ~590 | ~650 KB | 21% |
+| Countdown and "last checked" only | 6,516 | ~27 KB | 35% |
+| Price change (five statement shapes) | 311 | ~470 KB (230–780 by shape) | 29% |
+| Description and images (enrichment) | 129 | ~227 KB | 6% |
+| Close-time correction | 116 | ~116 KB | 3% |
+| New listing | 187 | ~60 KB | 2% |
 
-A price change can't be a HOT update, because it changes indexed columns. So the new row version is inserted into all 28 indexes on the table. Nine of those are GIN text-search indexes, trigram and full-text, 7.6 GB together; the largest cover title and description. A GIN insert adds one entry per trigram or word of the indexed text, which matches several hundred WAL records for a single row.
+Other statements and background work make up the remaining quarter.
+
+- **Countdown writes:** each one is cheap, but they are by far the most common write, so they are the biggest single share. 83% of the table's updates were HOT. The countdown statement still averages 66 WAL records per row, which means some of its updates are not HOT and pay for every index.
+- **Price changes:** a price change can't be a HOT update, because it changes indexed columns. So the new row version goes into all 28 indexes on the table.
+  - Nine of those are GIN text-search indexes, trigram and full-text, 7.6 GB together. The largest cover title and description.
+  - A GIN insert adds one entry per trigram or word. In this window that came to about 370 GIN records per new row version of the table (843 inserts and 1,562 non-HOT updates).
+
+An earlier version of this note quoted ~650 KB per price change, from cumulative statistics. That figure holds: the commonest shape cost ~780 KB here. But it is not the cost of every non-HOT update. In this window only 311 of the 1,562 non-HOT updates were price changes.
 
 ### Correction: records are not bytes
 
-An earlier version of this note said that full-page images were a minority of the records, so most of the cost was index maintenance and not checkpoints. Counting bytes says otherwise. I read one checkpoint cycle of WAL with `pg_waldump --stats=record`: 17 Oct, 01:21–01:44 UTC, from the checkpoint's redo point, 500 MB.
+The earlier version also said full-page images were a minority of the records, so the cost was index maintenance and not checkpoints. Counting bytes says otherwise:
 
-- Full-page images were 92% of the bytes, though a minority of the records.
-- GIN inserts were 91% of the bytes, and 93% of those bytes were full-page images.
-- B-tree indexes were 4%, and the table itself (heap and pruning) another 4%.
+- **In the window above:** full-page images were 79% of the WAL bytes, and GIN index inserts 89%.
+- **In an earlier full checkpoint cycle** (01:21–01:44, 500 MB): 92% and 91%.
 
-In those 23 minutes, 4,130 new row versions needed index entries (3,021 inserts and 1,109 non-HOT updates). They produced 451,156 GIN insert records, about 109 each, on pages scattered across 7.6 GB of index. The first change to a page after a checkpoint copies the whole page into the WAL, so each page they touch is written whole the first time in every cycle.
+How large the full-page share is depends on where a window falls in the checkpoint cycle.
 
-Index maintenance and checkpoints work together: the indexes decide how many pages are touched, and the checkpoint interval decides how often each one is copied. The three largest text indexes run with `fastupdate=off`. That keeps searches fast, but every entry goes straight into the tree instead of a pending list.
+The first change to a page after a checkpoint copies the whole page into the WAL. So index maintenance and checkpoints work together: the indexes decide how many pages are touched, and the checkpoint interval decides how often each one is copied. The three largest text indexes run with `fastupdate=off`. That keeps searches fast, but every entry goes straight into the tree instead of a pending list.
 
 ## Deadlocks
 
@@ -65,6 +74,6 @@ After the fixes there were none for the first half hour. Then a Docker restart a
 
 ## What I'd do next, from first principles
 
-- **Stop storing the countdown.** It can always be derived from the close time, which is stored once. Today it is still written once per refresh cadence. Deriving it at read time removes those writes entirely, instead of batching them.
-- **Take search out of the hot table.** The trigram and full-text indexes serve search, but every price change pays for them, and they are 91% of the WAL. A narrow search table, updated only when the title or description really changes, would let price updates be HOT and touch a few indexes instead of 28.
+- **Stop storing the countdown.** It can always be derived from the close time, which is stored once. Today it is still written once per refresh cadence, and in the window above those writes were 35% of the WAL. Deriving it at read time removes them entirely, instead of batching them.
+- **Take search out of the hot table.** The trigram and full-text indexes serve search, but every price change pays for them, and they are about 90% of the WAL. A narrow search table, updated only when the title or description really changes, would let price updates be HOT and touch a few indexes instead of 28.
 - **Copy each page less often.** A longer `checkpoint_timeout` writes each touched page whole fewer times, at the cost of a longer crash recovery. It is a setting, not a fix, so it comes after the search table.
