@@ -24,6 +24,7 @@ The unknown rows are how systems bid twice: the first request may have landed, a
   - Another test checks that a bid issued while the API is restarting arrives exactly once.
   - All 8 checks pass. This covers the proxy hop.
   - The console reports the same three outcomes to the buyer: "did not go through" (safe to try again), "not confirmed" (check before trying again), and "failed" with the marketplace's reason.
+- **The limit.** The amount to bid is computed per marketplace, and the computation returns no bid when the next legal bid would pass the buyer's limit. For the marketplace with three bidding strategies, a test checks that none of them overshoots. On the main marketplace, the call that sends a bid also refuses an amount above the limit, as a second check.
 - **The amount.** A bid once failed because an amount went out in a type the receiving API didn't accept. Now a guard refuses to build any request whose amount, read back from the wire format, isn't exactly the intended value. Malformed input becomes a refusal, never a wrong bid.
 - **Dependent bids.** One bid can depend on the outcome of another. Right before each send, a gate re-checks that the dependency still allows the bid. If the check itself fails, nothing is sent.
 - **Who is winning.** "Am I the high bidder?" is answered from fresh data from the marketplace, never from a local flag that might be stale.

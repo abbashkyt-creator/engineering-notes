@@ -40,4 +40,6 @@ Measured the same evening, on the same metrics, for every source but one. That o
 
 No source was asked for more than its budget.
 
-"Under 1 minute" is the age of that band at the evening check. I did not record its distribution, so there is no p95 or maximum to quote. The closest thing is one wave of 81 listings at one source: 0.3 minutes old at 1–2 minutes before close and 0.5 at 2–5 minutes, against 15.2 and 14.2 before. Next time I would record p50, p95 and the maximum.
+Rows A–C are the refresh families I measured one by one; C groups several smaller sites that are refreshed through a browser.
+
+My record of the evening check says only that the final-5-minutes band was "under a minute old". It does not say whether that was the median or the oldest listing, and I did not record the distribution, so there is no p95 or maximum to quote. The closest thing is one wave of 81 listings at one source: 0.3 minutes old at 1–2 minutes before close and 0.5 at 2–5 minutes, against 15.2 and 14.2 before. Next time I would record p50, p95 and the maximum.

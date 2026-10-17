@@ -48,10 +48,14 @@ I looked at one 15½-minute window (17 Oct, 02:28–02:44 UTC, 499 MB of WAL) in
 
 Other statements and background work make up the remaining quarter.
 
+The table lists only the statements that wrote the most WAL. The table had 843 inserts in the window. The INSERT statement shown accounts for 187 of them, and the rest came from several other INSERT statements, not shown. New listings arrive in scrape bursts: 843 in 15½ minutes is about 2.6 times the day's average rate (30,419 in 24 hours).
+
 - **Countdown writes:** each one is cheap, but they are by far the most common write, so they are the biggest single share. 83% of the table's updates were HOT. The countdown statement still averages 66 WAL records per row, which means some of its updates are not HOT and pay for every index.
 - **Price changes:** a price change can't be a HOT update, because it changes indexed columns. So the new row version goes into all 28 indexes on the table.
   - Nine of those are GIN text-search indexes, trigram and full-text, 7.6 GB together. The largest cover title and description.
   - A GIN insert adds one entry per trigram or word. In this window that came to about 370 GIN records per new row version of the table (843 inserts and 1,562 non-HOT updates).
+
+A new listing and a price change both add an entry to every index. So why does a price change cost several times more (a new listing is 60–160 KB, depending on the INSERT statement)? In the window, their WAL records per row are close: 308 and 431. The difference is full-page images: 2% of the insert's records, against 34% of the price change's. An insert lands on pages that are already hot: the end of the heap, and index pages that this cycle has already copied. A price change rewrites a row anywhere in the table, so it touches cold pages that have to be copied whole.
 
 An earlier version of this note quoted ~650 KB per price change, from cumulative statistics. That figure holds: the commonest shape cost ~780 KB here. But it is not the cost of every non-HOT update. In this window only 311 of the 1,562 non-HOT updates were price changes.
 
