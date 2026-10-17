@@ -9,10 +9,10 @@ Below are five production problems from running it. No product code is published
 | # | Problem | Result |
 |---|---|---|
 | 01 | [A bid must never go above the limit or out twice](01-never-bid-twice.md) | Retries only before a connection exists; a test checks there's no replay after a reset |
-| 02 | [Listing updates were 99% of the WAL, and most changed nothing](02-write-amplification.md) | WAL 3,772 → 1,509 MB/h over a 19-hour average (−60%), and why a price change still costs ~650 KB per row |
+| 02 | [Listing updates were 99% of the WAL, and most changed nothing](02-write-amplification.md) | WAL 3.8 GB/h (a few-minute sample) → 1.5 GB/h (19-hour average). What is left is 91% text-search index inserts, mostly whole pages copied after each checkpoint |
 | 03 | [The engine froze 100 seconds after every start](03-gil-freeze.md) | Two py-spy dumps, seconds apart, showed one thread holding the GIL in a regex ([repro](repro/gil_regex_freeze.py)) |
 | 04 | [One slow source starved all the others](04-fair-refresh-lanes.md) | Price age in a listing's final 5 minutes: about 3 days → under 1 minute |
-| 05 | [Vacuum could not keep the main table clean](05-vacuum-falling-behind.md) | Dead tuples 77% → 0.1% after the fixes and a manual VACUUM |
+| 05 | [Vacuum could not keep the main table clean](05-vacuum-falling-behind.md) | Dead tuples 77% → 0.1% after the fixes and a manual VACUUM; 3.7% on 17 Oct |
 
 In the GhostNode repository, 231 of 409 commits are co-authored by Claude Code. I set the design, review every change, and do the debugging and the production operations.
 

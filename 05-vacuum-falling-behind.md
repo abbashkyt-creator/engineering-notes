@@ -27,6 +27,8 @@ A week later the table was back to 77.4% dead tuples, and `count(*)` took 215.7 
 | `count(*)`, listings table | 215.7 s | 4.2 s |
 | Index size (also dropped an unused 6.6 GB trigram index) | 14 GB | 7.8 GB |
 
+**Checked again on 17 Oct:** 3.7% of the table's row versions were dead, under the 5% at which autovacuum is set to start on it. API transactions end after 2 minutes idle; the longest open one at the time was 1 min 40 s.
+
 ## Still open
 
 **What corrupted the index is unproven.** The database had gone through crash recovery the day before. It runs in Docker Desktop's VM on Windows, where a flush to disk isn't guaranteed to reach the physical disk before a crash. That is the likely trigger. What would catch it early: an alert when a large table's last completed autovacuum is more than a day old, and a scan of the Postgres log for `while vacuuming index`.
