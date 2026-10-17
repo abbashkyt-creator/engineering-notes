@@ -4,8 +4,6 @@
 
 ## Symptom
 
-Prices were stalest exactly when they mattered most.
-
 - Listings in their final 5 minutes had prices about 3 days old.
 - 0% of them were refreshed on schedule.
 - Within the hour before close, the median price age was 47 to 209 minutes, depending on the source.
@@ -40,4 +38,4 @@ Measured the same evening, on the same metrics. One source is excluded because i
 | Source B, closing within the hour, median age | 47 min, 0% on schedule | 0.8 min, 100% on schedule |
 | Source C, closing within the hour, median age | 209 min, 0% on schedule | 0.2 min, 100% on schedule |
 
-No source was asked for more than its budget. The same budgets, spent in the right order, were enough.
+No source was asked for more than its budget.

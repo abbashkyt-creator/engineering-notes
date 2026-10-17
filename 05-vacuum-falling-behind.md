@@ -29,4 +29,7 @@ A week later the table was back to 77.4% dead tuples, and `count(*)` took 215.7 
 
 ## Still open
 
+**What corrupted the index is unproven.** The database had gone through crash recovery the day before. It runs in Docker Desktop's VM on Windows, where a flush to disk isn't guaranteed to reach the physical disk before a crash. That is the likely trigger. What would catch it early: an alert when a large table's last completed autovacuum is more than a day old, and a scan of the Postgres log for `while vacuuming index`.
+
+
 I haven't proven which of the idle sessions held back cleanup. In READ COMMITTED, an idle transaction whose last statement was a SELECT holds no snapshot, so only sessions that had written would block it. Next time I'll capture `backend_xid` and `backend_xmin` from `pg_stat_activity` while it is happening.

@@ -20,11 +20,11 @@ A truly lost database reply looks different: the heartbeat keeps beating and no 
 
 ## Root cause
 
-A regular expression with six unbounded lazy gaps (`.*?`) ran in DOTALL mode over a whole HTML page. On a page that lacked the expected closing marker, it backtracked catastrophically. CPython's `re` engine holds the GIL while it matches, so that one call stopped every other thread in the process, the safety nets included.
+A regular expression with six unbounded lazy gaps (`.*?`) ran in DOTALL mode over a whole HTML page. On a page that lacked the expected closing marker, every combination of gap lengths was tried before giving up. That is polynomial in the page length, roughly one power of n per lazy gap; the repro's timings grow about as n^6.5. CPython's `re` engine holds the GIL while it matches, so that one call stopped every other thread in the process, the safety nets included.
 
 It struck about 100 seconds after each start because a background job reached that page in that window.
 
-[`repro/gil_regex_freeze.py`](repro/gil_regex_freeze.py) shows the effect on a 640-character input. A heartbeat thread that should beat every 0.25 s gets no beats at all while the regex runs. A marker-based parser does the same job in under a millisecond. Every 10 extra pairs on the page multiplies the regex time several times over.
+[`repro/gil_regex_freeze.py`](repro/gil_regex_freeze.py) shows the effect on a 640-character input. A heartbeat thread that should beat every 0.25 s gets no beats at all while the regex runs. A marker-based parser does the same job in under a millisecond. Going from 30 to 40 pairs multiplies the time by about 6, and 40 to 50 by about 4.4, which is what n^6.5 predicts. A real product page is far longer.
 
 ## Fix
 
