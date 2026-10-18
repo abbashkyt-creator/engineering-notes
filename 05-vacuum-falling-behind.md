@@ -2,6 +2,8 @@
 
 **When:** 10 and 17 September 2026 · **Stack:** PostgreSQL 16, SQLAlchemy
 
+_GhostNode's code is written by AI coding agents I direct; in this note, "I" means me working with them ([how](README.md))._
+
 ## 10 Sep: a corrupt index killed every vacuum
 
 Page loads swung between 1 second and 20. The listings table held more dead row versions than live ones.

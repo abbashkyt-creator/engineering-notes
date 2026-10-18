@@ -2,6 +2,8 @@
 
 **When:** 3 October 2026 · **Stack:** Python asyncio, PostgreSQL
 
+_GhostNode's code is written by AI coding agents I direct; in this note, "I" means me working with them ([how](README.md))._
+
 ## Symptom
 
 - Listings in their final 5 minutes had prices about 3 days old.

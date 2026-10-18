@@ -2,6 +2,8 @@
 
 **When:** September 2026 · **Where:** the bidding path (Python services behind a Node.js proxy)
 
+_GhostNode's code is written by AI coding agents I direct; in this note, "I" means me working with them ([how](README.md))._
+
 GhostNode places bids with real money. Two rules cannot break: a bid never exceeds the buyer's limit, and a bid is never sent twice.
 
 ## Why duplicates happen

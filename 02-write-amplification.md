@@ -2,6 +2,8 @@
 
 **When:** 3 October 2026, re-measured 16 and 17 October · **Stack:** Python, SQLAlchemy, PostgreSQL 16
 
+_GhostNode's code is written by AI coding agents I direct; in this note, "I" means me working with them ([how](README.md))._
+
 ## Symptom
 
 WAL and disk traffic grew far faster than the data, and the database logged 190 deadlocks in 28 hours.

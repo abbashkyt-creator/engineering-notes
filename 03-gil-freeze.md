@@ -2,6 +2,8 @@
 
 **When:** 10 September 2026 · **Stack:** Python, PostgreSQL · **Found with:** py-spy
 
+_GhostNode's code is written by AI coding agents I direct; in this note, "I" means me working with them ([how](README.md))._
+
 ## Symptom
 
 On three starts in a row, the engine went silent about 100 seconds in:
